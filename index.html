@@ -253,6 +253,7 @@
             
             <form onsubmit="handleAdminAuth(event)">
                 <input type="email" id="adminEmail" placeholder="correo@coordinacion.com" required class="w-full bg-white border border-black px-2.5 py-1.5 text-center text-xs text-black mb-2 focus:outline-none focus:border-gold">
+                <input type="password" id="adminPassword" placeholder="Contraseña de coordinador" required autocomplete="current-password" class="w-full bg-white border border-black px-2.5 py-1.5 text-center text-xs text-black mb-2 focus:outline-none focus:border-gold">
                 <p id="adminAuthError" class="text-gold text-[8px] font-normal uppercase mb-2 hidden">Correo no autorizado</p>
                 <button type="submit" class="w-full py-2 bg-black text-white font-normal text-[9px] tracking-widest uppercase hover:bg-gold transition-colors">
                     Verificar y Acceder
@@ -348,399 +349,273 @@
         </div>
     </div>
 
-    <!-- CÓDIGO JS DE PRODUCCIÓN -->
+    <!-- Código de aplicación: Supabase compartido -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // COORDINADORES AUTORIZADOS REALES
-        const AUTHORIZED_COORDINATORS = [
-            "ffoscar7@gmail.com",
-            "guadalupeluciarussorodriguez@gmail.com"
+        // CONFIGURACIÓN: completa estos dos valores con los datos de tu proyecto Supabase.
+        const SUPABASE_URL = 'https://gsfqfwhiwxnafyaqjzfl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_GdIYv4EDvOpusRDYd6VtYA_U4bsZAQB';
+        const COORDINATOR_EMAILS = [
+            'ffoscar7@gmail.com',
+            'guadalupeluciarussorodriguez@gmail.com'
         ];
 
-        // TURNOS REALES (31 OCT 21:00 - 1 NOV 10:00)
         const SHIFTS = [
-            { id: 1, time: "21:00 - 22:00", dateLabel: "31 OCT", isoStart: "20261031T210000", isoEnd: "20261031T220000" },
-            { id: 2, time: "22:00 - 23:00", dateLabel: "31 OCT", isoStart: "20261031T220000", isoEnd: "20261031T230000" },
-            { id: 3, time: "23:00 - 00:00", dateLabel: "31 OCT", isoStart: "20261031T230000", isoEnd: "20261101T000000" },
-            { id: 4, time: "00:00 - 01:00", dateLabel: "1 NOV", isoStart: "20261101T000000", isoEnd: "20261101T010000" },
-            { id: 5, time: "01:00 - 02:00", dateLabel: "1 NOV", isoStart: "20261101T010000", isoEnd: "20261101T020000" },
-            { id: 6, time: "02:00 - 03:00", dateLabel: "1 NOV", isoStart: "20261101T020000", isoEnd: "20261101T030000" },
-            { id: 7, time: "03:00 - 04:00", dateLabel: "1 NOV", isoStart: "20261101T030000", isoEnd: "20261101T040000" },
-            { id: 8, time: "04:00 - 05:00", dateLabel: "1 NOV", isoStart: "20261101T040000", isoEnd: "20261101T050000" },
-            { id: 9, time: "05:00 - 06:00", dateLabel: "1 NOV", isoStart: "20261101T050000", isoEnd: "20261101T060000" },
-            { id: 10, time: "06:00 - 07:00", dateLabel: "1 NOV", isoStart: "20261101T060000", isoEnd: "20261101T070000" },
-            { id: 11, time: "07:00 - 08:00", dateLabel: "1 NOV", isoStart: "20261101T070000", isoEnd: "20261101T080000" },
-            { id: 12, time: "08:00 - 09:00", dateLabel: "1 NOV", isoStart: "20261101T080000", isoEnd: "20261101T090000" },
-            { id: 13, time: "09:00 - 10:00", dateLabel: "1 NOV", isoStart: "20261101T090000", isoEnd: "20261101T100000" }
+            { id: 1, time: '21:00 - 22:00', dateLabel: '31 OCT', isoStart: '20261031T210000', isoEnd: '20261031T220000' },
+            { id: 2, time: '22:00 - 23:00', dateLabel: '31 OCT', isoStart: '20261031T220000', isoEnd: '20261031T230000' },
+            { id: 3, time: '23:00 - 00:00', dateLabel: '31 OCT', isoStart: '20261031T230000', isoEnd: '20261101T000000' },
+            { id: 4, time: '00:00 - 01:00', dateLabel: '1 NOV', isoStart: '20261101T000000', isoEnd: '20261101T010000' },
+            { id: 5, time: '01:00 - 02:00', dateLabel: '1 NOV', isoStart: '20261101T010000', isoEnd: '20261101T020000' },
+            { id: 6, time: '02:00 - 03:00', dateLabel: '1 NOV', isoStart: '20261101T020000', isoEnd: '20261101T030000' },
+            { id: 7, time: '03:00 - 04:00', dateLabel: '1 NOV', isoStart: '20261101T030000', isoEnd: '20261101T040000' },
+            { id: 8, time: '04:00 - 05:00', dateLabel: '1 NOV', isoStart: '20261101T040000', isoEnd: '20261101T050000' },
+            { id: 9, time: '05:00 - 06:00', dateLabel: '1 NOV', isoStart: '20261101T050000', isoEnd: '20261101T060000' },
+            { id: 10, time: '06:00 - 07:00', dateLabel: '1 NOV', isoStart: '20261101T060000', isoEnd: '20261101T070000' },
+            { id: 11, time: '07:00 - 08:00', dateLabel: '1 NOV', isoStart: '20261101T070000', isoEnd: '20261101T080000' },
+            { id: 12, time: '08:00 - 09:00', dateLabel: '1 NOV', isoStart: '20261101T080000', isoEnd: '20261101T090000' },
+            { id: 13, time: '09:00 - 10:00', dateLabel: '1 NOV', isoStart: '20261101T090000', isoEnd: '20261101T100000' }
         ];
 
-        // ESTADO DE PRODUCCIÓN (ARRANQUE LIMPIO)
+        let supabaseClient = null;
         let registrations = [];
+        let shiftCounts = {};
         let currentFilter = 'all';
         let currentAdminEmail = '';
+        let refreshTimer = null;
+        let realtimeChannel = null;
 
-        window.onload = function() {
-            loadData();
-            renderShifts();
+        window.onload = async function () {
             lucide.createIcons();
+            if (SUPABASE_URL.startsWith('PEGA_AQUI') || SUPABASE_ANON_KEY.startsWith('PEGA_AQUI')) {
+                showConfigError();
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                await refreshPublicData();
+                // Actualiza cada 5 segundos incluso si el navegador no recibe eventos Realtime.
+                refreshTimer = setInterval(refreshPublicData, 5000);
+                // Realtime avisa de nuevas inscripciones; el recuento público no contiene datos personales.
+                realtimeChannel = supabaseClient.channel('public-registration-updates')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => refreshPublicData())
+                    .subscribe();
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && isCoordinator(session.user.email)) {
+                    currentAdminEmail = session.user.email;
+                }
+                supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    currentAdminEmail = session && isCoordinator(session.user.email) ? session.user.email : '';
+                });
+            } catch (err) {
+                console.error(err);
+                showAppError('No se ha podido conectar con la base de datos. Comprueba la configuración de Supabase.');
+            }
         };
 
-        function loadData() {
-            const savedData = localStorage.getItem('smsta_adoracion_prod_reg');
-            if (savedData) {
-                try {
-                    registrations = JSON.parse(savedData);
-                } catch(e) {
-                    registrations = [];
-                }
-            } else {
-                registrations = []; // LIMPIO PARA PRODUCCIÓN
-                saveData();
+        function showConfigError() {
+            const container = document.getElementById('shiftsContainer');
+            container.innerHTML = '<div class="border border-black p-4 text-xs">La web aún no está conectada a la base de datos. Completa SUPABASE_URL y SUPABASE_ANON_KEY en el archivo HTML siguiendo las instrucciones de configuración.</div>';
+        }
+        function showAppError(message) {
+            const container = document.getElementById('shiftsContainer');
+            container.innerHTML = `<div class="border border-black p-4 text-xs">${escapeHtml(message)}</div>`;
+        }
+        function isCoordinator(email) {
+            return !!email && COORDINATOR_EMAILS.includes(email.toLowerCase());
+        }
+        async function refreshPublicData() {
+            if (!supabaseClient) return;
+            const { data, error } = await supabaseClient.rpc('get_shift_counts');
+            if (error) {
+                console.error('Error cargando recuentos:', error);
+                showAppError('No se han podido cargar los turnos. Revisa que hayas ejecutado el SQL de configuración de Supabase.');
+                return;
+            }
+            shiftCounts = {};
+            (data || []).forEach(row => { shiftCounts[Number(row.shift_id)] = Number(row.count); });
+            renderShifts();
+            if (document.getElementById('adminPanelModal') && !document.getElementById('adminPanelModal').classList.contains('hidden') && currentAdminEmail) {
+                await loadAdminRegistrations();
             }
         }
-
-        function saveData() {
-            localStorage.setItem('smsta_adoracion_prod_reg', JSON.stringify(registrations));
-        }
-
         function setFilter(filter) {
             currentFilter = filter;
             const btnAll = document.getElementById('filterAllBtn');
             const btnNeed = document.getElementById('filterNeedBtn');
-
             if (filter === 'all') {
-                btnAll.className = "py-1.5 border border-black bg-black text-white font-normal transition-all";
-                btnNeed.className = "py-1.5 border border-black bg-white text-black font-light hover:bg-gold hover:text-white hover:border-gold transition-all";
+                btnAll.className = 'py-1.5 border border-black bg-black text-white font-normal transition-all';
+                btnNeed.className = 'py-1.5 border border-black bg-white text-black font-light hover:bg-gold hover:text-white hover:border-gold transition-all';
             } else {
-                btnNeed.className = "py-1.5 border border-black bg-black text-white font-normal transition-all";
-                btnAll.className = "py-1.5 border border-black bg-white text-black font-light hover:bg-gold hover:text-white hover:border-gold transition-all";
+                btnNeed.className = 'py-1.5 border border-black bg-black text-white font-normal transition-all';
+                btnAll.className = 'py-1.5 border border-black bg-white text-black font-light hover:bg-gold hover:text-white transition-all';
             }
             renderShifts();
         }
-
-        // RENDER DE TURNOS
         function renderShifts() {
             const container = document.getElementById('shiftsContainer');
             container.innerHTML = '';
-
             let needyCount = 0;
-
             SHIFTS.forEach(shift => {
-                const shiftRegs = registrations.filter(r => r.shiftId === shift.id);
-                const count = shiftRegs.length;
+                const count = shiftCounts[shift.id] || 0;
                 const needsMore = count < 2;
-
                 if (needsMore) needyCount++;
-
-                if (currentFilter === 'need' && !needsMore) {
-                    return;
-                }
-
-                // Indicador geométrico: 0 -> Blanco/Borde Negro; 1 -> Dorado; 2+ -> Negro
-                let statusBoxHtml = '';
-                if (count === 0) {
-                    statusBoxHtml = `<span class="w-4 h-4 border border-black bg-white text-black flex items-center justify-center font-normal text-[9px]">0</span>`;
-                } else if (count === 1) {
-                    statusBoxHtml = `<span class="w-4 h-4 bg-gold text-white flex items-center justify-center font-normal text-[9px]">1</span>`;
-                } else {
-                    statusBoxHtml = `<span class="w-4 h-4 bg-black text-white flex items-center justify-center font-normal text-[9px]">${count}</span>`;
-                }
-
+                if (currentFilter === 'need' && !needsMore) return;
+                let statusBoxHtml = count === 0
+                    ? '<span class="w-4 h-4 border border-black bg-white text-black flex items-center justify-center font-normal text-[9px]">0</span>'
+                    : count === 1
+                        ? '<span class="w-4 h-4 bg-gold text-white flex items-center justify-center font-normal text-[9px]">1</span>'
+                        : `<span class="w-4 h-4 bg-black text-white flex items-center justify-center font-normal text-[9px]">${count}</span>`;
                 const card = document.createElement('div');
-                card.className = "border border-black p-1.5 flex items-center justify-between bg-white hover:border-gold transition-all";
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-2.5">
-                        ${statusBoxHtml}
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-normal tracking-wider text-black">${shift.time}</span>
-                                <span class="text-[8px] font-light text-black/50 border-l border-black/20 pl-1.5 uppercase">${shift.dateLabel}</span>
-                            </div>
-                            <span class="text-[8px] font-light text-black/60 uppercase tracking-wider block">
-                                ${count === 0 ? 'Sin adoradores' : (count === 1 ? '1 adorador' : count + ' adoradores')}
-                            </span>
-                        </div>
-                    </div>
-
-                    <button onclick="openSignupModal(${shift.id})" class="py-1 px-2.5 border border-black bg-white text-black font-light text-[9px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors flex items-center gap-1">
-                        <span>Apuntarme</span>
-                        <i data-lucide="chevron-right" class="w-3 h-3 text-gold"></i>
-                    </button>
-                `;
-
+                card.className = 'border border-black p-1.5 flex items-center justify-between bg-white hover:border-gold transition-all';
+                card.innerHTML = `<div class="flex items-center gap-2.5">${statusBoxHtml}<div><div class="flex items-center gap-2"><span class="text-xs font-normal tracking-wider text-black">${shift.time}</span><span class="text-[8px] font-light text-black/50 border-l border-black/20 pl-1.5 uppercase">${shift.dateLabel}</span></div><span class="text-[8px] font-light text-black/60 uppercase tracking-wider block">${count === 0 ? 'Sin adoradores' : count === 1 ? '1 adorador' : count + ' adoradores'}</span></div></div><button onclick="openSignupModal(${shift.id})" class="py-1 px-2.5 border border-black bg-white text-black font-light text-[9px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors flex items-center gap-1"><span>Apuntarme</span><i data-lucide="chevron-right" class="w-3 h-3 text-gold"></i></button>`;
                 container.appendChild(card);
             });
-
             document.getElementById('countAll').innerText = SHIFTS.length;
             document.getElementById('countNeed').innerText = needyCount;
-
             if (container.children.length === 0 && currentFilter === 'need') {
-                container.innerHTML = `
-                    <div class="text-center py-6 border border-black bg-white p-3">
-                        <i data-lucide="check" class="w-5 h-5 text-gold mx-auto mb-1"></i>
-                        <p class="text-xs font-normal tracking-widest text-black uppercase">Todos los turnos están cubiertos</p>
-                    </div>
-                `;
+                container.innerHTML = '<div class="text-center py-6 border border-black bg-white p-3"><i data-lucide="check" class="w-5 h-5 text-gold mx-auto mb-1"></i><p class="text-xs font-normal tracking-widest text-black uppercase">Todos los turnos están cubiertos</p></div>';
             }
-
             lucide.createIcons();
         }
-
-        // SIGNUP MODAL LOGIC
         function openSignupModal(shiftId) {
             const shift = SHIFTS.find(s => s.id === shiftId);
             if (!shift) return;
-
             document.getElementById('selectedShiftId').value = shift.id;
             document.getElementById('modalShiftTime').innerText = `Turno ${shift.time} (${shift.dateLabel})`;
             document.getElementById('signupModal').classList.remove('hidden');
         }
-
         function closeSignupModal() {
             document.getElementById('signupModal').classList.add('hidden');
             document.getElementById('signupForm').reset();
         }
-
-        function handleSignupSubmit(e) {
+        async function handleSignupSubmit(e) {
             e.preventDefault();
-            const shiftId = parseInt(document.getElementById('selectedShiftId').value);
+            if (!supabaseClient) return alert('La base de datos no está configurada.');
+            const shiftId = Number(document.getElementById('selectedShiftId').value);
             const name = document.getElementById('userName').value.trim();
             const phone = document.getElementById('userPhone').value.trim();
-            const email = document.getElementById('userEmail').value.trim();
-
-            if (!name || !phone || !email) return;
-
-            const newReg = {
-                id: Date.now().toString(),
-                shiftId,
-                name,
-                phone,
-                email
-            };
-
-            registrations.push(newReg);
-            saveData();
-            renderShifts();
-            closeSignupModal();
-
-            const shift = SHIFTS.find(s => s.id === shiftId);
-            showSuccessModal(shift, name);
+            const email = document.getElementById('userEmail').value.trim().toLowerCase();
+            if (!name || !phone || !email || !SHIFTS.some(s => s.id === shiftId)) return;
+            const submitButton = document.querySelector('#signupForm button[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                const { error } = await supabaseClient.from('registrations').insert({ shift_id: shiftId, name, phone, email });
+                if (error) throw error;
+                await refreshPublicData();
+                closeSignupModal();
+                showSuccessModal(SHIFTS.find(s => s.id === shiftId), name);
+            } catch (err) {
+                console.error(err);
+                alert('No se ha podido guardar la inscripción. Comprueba la conexión e inténtalo de nuevo.');
+            } finally { submitButton.disabled = false; }
         }
-
-        // SUCCESS MODAL
         function showSuccessModal(shift, name) {
             document.getElementById('confirmShiftTime').innerText = `${shift.time} (${shift.dateLabel})`;
             document.getElementById('confirmName').innerText = name;
-
-            // Google Calendar Link con datos reales
-            const title = encodeURIComponent("Adoración Nocturna - Parroquia SMSTA");
+            const title = encodeURIComponent('Adoración Nocturna - Parroquia SMSTA');
             const details = encodeURIComponent(`Turno de Oración de ${name}. Cripta de la Parroquia SMSTA.`);
-            const location = encodeURIComponent("Cripta - Parroquia SMSTA");
-            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${shift.isoStart}/${shift.isoEnd}&details=${details}&location=${location}`;
-            document.getElementById('btnAddToCalendar').href = gcalUrl;
-
-            // WhatsApp Link
+            const location = encodeURIComponent('Cripta - Parroquia SMSTA');
+            document.getElementById('btnAddToCalendar').href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${shift.isoStart}/${shift.isoEnd}&details=${details}&location=${location}`;
             const textWA = encodeURIComponent(`Hola, me he apuntado al turno de ${shift.time} (${shift.dateLabel}) para la Adoración Nocturna en la Cripta de la Parroquia SMSTA.`);
             document.getElementById('btnShareWhatsapp').href = `https://wa.me/?text=${textWA}`;
-
             document.getElementById('successModal').classList.remove('hidden');
         }
-
-        function closeSuccessModal() {
-            document.getElementById('successModal').classList.add('hidden');
-        }
-
-        // ACCESO AUTENTICADO DE COORDINACIÓN
+        function closeSuccessModal() { document.getElementById('successModal').classList.add('hidden'); }
         function openAdminAuthModal() {
             document.getElementById('adminEmail').value = '';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminAuthError').innerText = 'Correo o contraseña incorrectos, o correo no autorizado';
             document.getElementById('adminAuthError').classList.add('hidden');
             document.getElementById('adminAuthModal').classList.remove('hidden');
         }
-
-        function closeAdminAuthModal() {
-            document.getElementById('adminAuthModal').classList.add('hidden');
-        }
-
-        function handleAdminAuth(e) {
+        function closeAdminAuthModal() { document.getElementById('adminAuthModal').classList.add('hidden'); }
+        async function handleAdminAuth(e) {
             e.preventDefault();
-            const emailInput = document.getElementById('adminEmail').value.trim().toLowerCase();
-
-            if (AUTHORIZED_COORDINATORS.includes(emailInput)) {
-                currentAdminEmail = emailInput;
-                closeAdminAuthModal();
-                openAdminPanel();
-            } else {
+            const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+            const password = document.getElementById('adminPassword').value;
+            if (!isCoordinator(email)) {
                 document.getElementById('adminAuthError').classList.remove('hidden');
+                return;
             }
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error || !data.user || !isCoordinator(data.user.email)) {
+                document.getElementById('adminAuthError').classList.remove('hidden');
+                return;
+            }
+            currentAdminEmail = data.user.email;
+            closeAdminAuthModal();
+            await openAdminPanel();
         }
-
-        // PANEL DE COORDINACIÓN
-        function openAdminPanel() {
+        async function openAdminPanel() {
+            if (!currentAdminEmail) return openAdminAuthModal();
             document.getElementById('adminUserLabel').innerText = `Coordinador: ${currentAdminEmail}`;
-            renderAdminView();
             document.getElementById('adminPanelModal').classList.remove('hidden');
+            await loadAdminRegistrations();
         }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanelModal').classList.add('hidden');
+        function closeAdminPanel() { document.getElementById('adminPanelModal').classList.add('hidden'); }
+        async function loadAdminRegistrations() {
+            const { data, error } = await supabaseClient.from('registrations').select('id,shift_id,name,phone,email,created_at').order('created_at', { ascending: true });
+            if (error) { console.error(error); alert('No se han podido cargar las inscripciones del panel. Comprueba los permisos SQL.'); return; }
+            registrations = (data || []).map(r => ({ id: r.id, shiftId: Number(r.shift_id), name: r.name, phone: r.phone, email: r.email }));
+            renderAdminView();
         }
-
-        function renderAdminView() {
-            const totalAdorers = registrations.length;
-            let covered = 0;
-            let alertCount = 0;
-
-            SHIFTS.forEach(shift => {
-                const count = registrations.filter(r => r.shiftId === shift.id).length;
-                if (count >= 2) covered++;
-                else alertCount++;
-            });
-
-            document.getElementById('statTotalUsers').innerText = totalAdorers;
+        async function renderAdminView() {
+            const total = registrations.length;
+            let covered = 0, alertCount = 0;
+            SHIFTS.forEach(shift => { const count = registrations.filter(r => r.shiftId === shift.id).length; if (count >= 2) covered++; else alertCount++; });
+            document.getElementById('statTotalUsers').innerText = total;
             document.getElementById('statCoveredShifts').innerText = `${covered}/13`;
             document.getElementById('statAlertShifts').innerText = alertCount;
-
             const listContainer = document.getElementById('adminShiftsList');
             listContainer.innerHTML = '';
-
             SHIFTS.forEach(shift => {
                 const shiftRegs = registrations.filter(r => r.shiftId === shift.id);
-                const count = shiftRegs.length;
-
-                const shiftBlock = document.createElement('div');
-                shiftBlock.className = 'border border-black bg-white';
-
-                let peopleHtml = '';
-                if (count === 0) {
-                    peopleHtml = `<p class="text-[9px] font-light text-black/50 italic p-1.5 uppercase">Sin inscritos</p>`;
-                } else {
-                    peopleHtml = shiftRegs.map(reg => `
-                        <div class="flex items-center justify-between p-1.5 border-b border-black/10 last:border-b-0 hover:bg-black/5 text-xs">
-                            <div>
-                                <p class="font-normal text-black text-xs">${escapeHtml(reg.name)}</p>
-                                <p class="text-[8px] font-light text-black/60">${escapeHtml(reg.phone)} • ${escapeHtml(reg.email)}</p>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <a href="tel:${reg.phone}" title="Llamar" class="p-1 border border-black hover:bg-gold hover:border-gold hover:text-white transition-colors">
-                                    <i data-lucide="phone" class="w-3 h-3"></i>
-                                </a>
-                                <a href="https://wa.me/${reg.phone.replace(/\s+/g, '')}" target="_blank" title="WhatsApp" class="p-1 border border-black hover:bg-black hover:text-white transition-colors">
-                                    <i data-lucide="message-square" class="w-3 h-3"></i>
-                                </a>
-                                <button onclick="deleteRegistration('${reg.id}')" title="Borrar" class="p-1 border border-black hover:bg-black hover:text-white transition-colors">
-                                    <i data-lucide="trash-2" class="w-3 h-3 text-gold"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-                shiftBlock.innerHTML = `
-                    <div class="flex items-center justify-between p-1.5 bg-black text-white text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="font-normal tracking-widest text-[10px]">${shift.time}</span>
-                            <span class="text-[8px] text-gold uppercase font-light">(${shift.dateLabel})</span>
-                        </div>
-                        <span class="text-[8px] uppercase tracking-wider font-light border border-gold/50 px-1 py-0.2">
-                            ${count} ${count === 1 ? 'persona' : 'personas'}
-                        </span>
-                    </div>
-                    <div class="divide-y divide-black/10">
-                        ${peopleHtml}
-                    </div>
-                `;
-
-                listContainer.appendChild(shiftBlock);
+                const block = document.createElement('div'); block.className = 'border border-black bg-white';
+                const peopleHtml = shiftRegs.length === 0 ? '<p class="text-[9px] font-light text-black/50 italic p-1.5 uppercase">Sin inscritos</p>' : shiftRegs.map(reg => `<div class="flex items-center justify-between p-1.5 border-b border-black/10 last:border-b-0 hover:bg-black/5 text-xs"><div><p class="font-normal text-black text-xs">${escapeHtml(reg.name)}</p><p class="text-[8px] font-light text-black/60">${escapeHtml(reg.phone)} • ${escapeHtml(reg.email)}</p></div><div class="flex items-center gap-1"><a href="tel:${escapeHtml(reg.phone)}" title="Llamar" class="p-1 border border-black"><i data-lucide="phone" class="w-3 h-3"></i></a><a href="https://wa.me/${encodeURIComponent(reg.phone.replace(/\s+/g, ''))}" target="_blank" rel="noopener" title="WhatsApp" class="p-1 border border-black"><i data-lucide="message-square" class="w-3 h-3"></i></a><button onclick="deleteRegistration('${reg.id}')" title="Borrar" class="p-1 border border-black"><i data-lucide="trash-2" class="w-3 h-3 text-gold"></i></button></div></div>`).join('');
+                block.innerHTML = `<div class="flex items-center justify-between p-1.5 bg-black text-white text-xs"><div class="flex items-center gap-2"><span class="font-normal tracking-widest text-[10px]">${shift.time}</span><span class="text-[8px] text-gold uppercase font-light">(${shift.dateLabel})</span></div><span class="text-[8px] uppercase tracking-wider font-light border border-gold/50 px-1">${shiftRegs.length} ${shiftRegs.length === 1 ? 'persona' : 'personas'}</span></div><div class="divide-y divide-black/10">${peopleHtml}</div>`;
+                listContainer.appendChild(block);
             });
-
             lucide.createIcons();
         }
-
-        function deleteRegistration(id) {
-            registrations = registrations.filter(r => r.id !== id);
-            saveData();
-            renderShifts();
-            renderAdminView();
+        async function deleteRegistration(id) {
+            if (!currentAdminEmail || !confirm('¿Seguro que quieres borrar esta inscripción?')) return;
+            const { error } = await supabaseClient.from('registrations').delete().eq('id', id);
+            if (error) { console.error(error); alert('No se ha podido borrar la inscripción.'); return; }
+            await loadAdminRegistrations(); await refreshPublicData();
         }
-
-        // MANUAL ADD MODAL
         function openManualAddModal() {
-            const select = document.getElementById('manualShiftSelect');
-            select.innerHTML = SHIFTS.map(s => `
-                <option value="${s.id}">${s.time} - ${s.dateLabel}</option>
-            `).join('');
-
+            if (!currentAdminEmail) return;
+            document.getElementById('manualShiftSelect').innerHTML = SHIFTS.map(s => `<option value="${s.id}">${s.time} - ${s.dateLabel}</option>`).join('');
             document.getElementById('manualName').value = '';
             document.getElementById('manualPhone').value = '';
             document.getElementById('manualEmail').value = '';
             document.getElementById('manualAddModal').classList.remove('hidden');
         }
-
-        function closeManualAddModal() {
-            document.getElementById('manualAddModal').classList.add('hidden');
-        }
-
-        function handleManualAddSubmit(e) {
+        function closeManualAddModal() { document.getElementById('manualAddModal').classList.add('hidden'); }
+        async function handleManualAddSubmit(e) {
             e.preventDefault();
-            const shiftId = parseInt(document.getElementById('manualShiftSelect').value);
+            if (!currentAdminEmail) return;
+            const shiftId = Number(document.getElementById('manualShiftSelect').value);
             const name = document.getElementById('manualName').value.trim();
-            const phone = document.getElementById('manualPhone').value.trim();
-            const email = document.getElementById('manualEmail').value.trim();
-
+            const phone = document.getElementById('manualPhone').value.trim() || '-';
+            const email = document.getElementById('manualEmail').value.trim().toLowerCase() || '-';
             if (!name) return;
-
-            const newReg = {
-                id: Date.now().toString(),
-                shiftId,
-                name,
-                phone: phone || '-',
-                email: email || '-'
-            };
-
-            registrations.push(newReg);
-            saveData();
-            renderShifts();
-            renderAdminView();
-            closeManualAddModal();
+            const { error } = await supabaseClient.from('registrations').insert({ shift_id: shiftId, name, phone, email });
+            if (error) { console.error(error); alert('No se ha podido añadir la inscripción.'); return; }
+            await loadAdminRegistrations(); await refreshPublicData(); closeManualAddModal();
         }
-
-        // EXPORT TO CSV REAL
         function exportToCSV() {
-            if (registrations.length === 0) {
-                alert("No hay inscripciones registradas para exportar.");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,ID Turno,Hora Turno,Dia,Nombre,Telefono,Email\n";
-
-            registrations.forEach(reg => {
-                const shift = SHIFTS.find(s => s.id === reg.shiftId);
-                const shiftTime = shift ? shift.time : '';
-                const shiftDate = shift ? shift.dateLabel : '';
-
-                const row = [
-                    reg.shiftId,
-                    `"${shiftTime}"`,
-                    `"${shiftDate}"`,
-                    `"${reg.name}"`,
-                    `"${reg.phone}"`,
-                    `"${reg.email}"`
-                ].join(",");
-
-                csvContent += row + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `adoracion_smsta_cripta.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (!currentAdminEmail) return;
+            if (!registrations.length) { alert('No hay inscripciones registradas para exportar.'); return; }
+            const quote = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+            let csv = 'ID Turno,Hora Turno,Día,Nombre,Teléfono,Email\n';
+            registrations.forEach(reg => { const shift = SHIFTS.find(s => s.id === reg.shiftId); csv += [reg.shiftId, quote(shift?.time || ''), quote(shift?.dateLabel || ''), quote(reg.name), quote(reg.phone), quote(reg.email)].join(',') + '\n'; });
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob); const link = document.createElement('a');
+            link.href = url; link.download = 'adoracion_smsta_cripta.csv'; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
         }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
     </script>
 </body>
